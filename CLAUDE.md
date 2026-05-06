@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Rails 8.1.3 on Ruby 3.4.6. Application module: `PrivateEvents`. This is a learning project from The Odin Project — see `README.md` for context, `docs/project.md` for the original spec, and `docs/scope.md` for the agreed Tier 1–3 split. The pedagogical goal is **custom ActiveRecord associations**, so the naming below is deliberately not derivable from convention.
 
-**Tier 1 + Tier 2 are built.** Four domain models (`User`, `Event`, `Registration`, `Invitation`), Devise auth, events with public/private flag and creator-managed invitations, register/cancel-register flow gated by visibility, user profile with past/upcoming partitioning across "created / attending / invited" lists, Tailwind-styled UI with navbar. **Tier 3** (edit/delete events, toggle public/private) is not started.
+**Tier 1 + Tier 2 are built.** Four domain models (`User`, `Event`, `Registration`, `Invitation`), Devise auth, events with public/private flag and creator-managed invitations, register/cancel-register flow gated by visibility, user profile with past/upcoming partitioning across "created / attending / invited" lists, Tailwind-styled UI with navbar. **Tier 3** (edit/delete events, toggle public/private) was deliberately scoped out — see `docs/scope.md`. Treat the project as feature-complete; new work should be a fresh decision, not an assumed continuation of the original plan.
 
 ## Common commands
 

@@ -46,7 +46,7 @@ bin/dev
 
 - [x] **Tier 1** — 註冊／登入、建立活動、報名/取消、events index+show、profile
 - [x] **Tier 2** — 過去/未來活動切片、navbar、私人活動 + 邀請、Tailwind UI
-- [ ] **Tier 3** — 編輯/刪除活動、切換公開私人
+- ~~**Tier 3** — 編輯/刪除活動、切換公開私人~~（決定不做，已達本專案學習目標）
 
 ---
 
