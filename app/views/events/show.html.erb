@@ -1,0 +1,33 @@
+<% content_for :title, @event.title %>
+
+<h1><%= @event.title %></h1>
+
+<p>
+  <strong>When:</strong> <%= @event.starts_at.to_fs(:long) if @event.starts_at %><br>
+  <strong>Where:</strong> <%= @event.location %><br>
+  <strong>Created by:</strong> <%= link_to @event.creator.name, @event.creator %>
+</p>
+
+<% if @event.description.present? %>
+  <p><%= simple_format @event.description %></p>
+<% end %>
+
+<% if user_signed_in? %>
+  <% if current_user.attended_events.exists?(@event.id) %>
+    <%= button_to "Cancel registration", event_registration_path(@event), method: :delete %>
+  <% else %>
+    <%= button_to "Register", event_registration_path(@event), method: :post %>
+  <% end %>
+<% end %>
+
+<h2>Attendees (<%= @event.attendees.count %>)</h2>
+
+<% if @event.attendees.any? %>
+  <ul>
+    <% @event.attendees.each do |attendee| %>
+      <li><%= link_to attendee.name, attendee %></li>
+    <% end %>
+  </ul>
+<% else %>
+  <p>No attendees yet.</p>
+<% end %>

@@ -24,6 +24,22 @@
   </head>
 
   <body>
+    <nav>
+      <%= link_to "Events", root_path %>
+      |
+      <% if user_signed_in? %>
+        Hi, <%= current_user.name %>
+        (<%= link_to "profile", current_user %>)
+        <%= button_to "Log out", destroy_user_session_path, method: :delete, data: { turbo: false } %>
+      <% else %>
+        <%= link_to "Log in", new_user_session_path %>
+        <%= link_to "Sign up", new_user_registration_path %>
+      <% end %>
+    </nav>
+
+    <% if notice %><p class="notice"><%= notice %></p><% end %>
+    <% if alert %><p class="alert"><%= alert %></p><% end %>
+
     <%= yield %>
   </body>
 </html>

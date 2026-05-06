@@ -1,0 +1,22 @@
+<% content_for :title, "Events" %>
+
+<h1>Events</h1>
+
+<% if user_signed_in? %>
+  <p><%= link_to "Create new event", new_event_path %></p>
+<% end %>
+
+<% if @events.any? %>
+  <ul>
+    <% @events.each do |event| %>
+      <li>
+        <%= link_to event.title, event %>
+        — <%= event.starts_at.to_fs(:long) if event.starts_at %>
+        @ <%= event.location %>
+        (by <%= link_to event.creator.name, event.creator %>)
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <p>No events yet.</p>
+<% end %>

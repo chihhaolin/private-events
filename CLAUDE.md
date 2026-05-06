@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project state
 
-Freshly generated Rails 8.1.3 skeleton on Ruby 3.4.6. The application module is `PrivateEvents` (`config/application.rb`). `config/routes.rb` only declares the `/up` health check, and `app/models`/`app/controllers` contain only the default `ApplicationRecord`/`ApplicationController` — domain code has not been written yet, so most "where is X" questions about features won't have an answer in the tree.
+Rails 8.1.3 on Ruby 3.4.6. Application module: `PrivateEvents`. This is a learning project from The Odin Project — see `README.md` for context, `docs/project.md` for the original spec, and `docs/scope.md` for the agreed Tier 1–3 split. The pedagogical goal is **custom ActiveRecord associations**, so the naming below is deliberately not derivable from convention.
+
+**Tier 1 is built.** Three domain models (`User`, `Event`, `Registration`), Devise auth, full CRUD-lite for events, register/cancel-register flow, user profile. Tier 2 (past/future split, private events + invitations, navbar) and Tier 3 (edit/delete events, toggle public/private) are not yet started.
 
 ## Common commands
 
@@ -39,3 +41,37 @@ bin/ci                            # run the whole CI suite locally (see config/c
 **Style.** RuboCop inherits from `rubocop-rails-omakase` (`.rubocop.yml`). House overrides go in that file; don't fight omakase defaults without a reason.
 
 **Deploy.** Kamal (`config/deploy.yml`, `.kamal/`) + Thruster (HTTP cache/compression in front of Puma). The Dockerfile is multi-stage and assumes SQLite volumes mounted at `./storage`. `config/credentials.yml.enc` is committed; `config/master.key` is gitignored and required to decrypt — never check it in.
+
+## Domain conventions worth knowing before editing models
+
+**The custom-named associations are the whole point — don't "fix" them to match Rails defaults.**
+
+```
+User has_many :created_events, class_name: "Event", foreign_key: "creator_id"
+User has_many :registrations
+User has_many :attended_events, through: :registrations, source: :event
+Event belongs_to :creator, class_name: "User"
+Event has_many :registrations
+Event has_many :attendees, through: :registrations, source: :user
+```
+
+When a controller creates an event, it must use `current_user.created_events.build(...)` — not `Event.new(...)`. The Odin lesson tests for this idiom; reviewers will flag a regression to `Event.new`.
+
+## Devise + Turbo
+
+Devise 4.9 is wired with `data: { turbo: false }` on the three auth forms (`devise/sessions/new.html.erb`, `devise/registrations/new.html.erb`, and the Log out `button_to` in the application layout). This is intentional — it dodges Devise/Turbo redirect-on-422 friction. Don't remove the attribute when editing those views.
+
+Devise's own `RegistrationsController` (sign-up) lives at `/users` under `devise_for`. The app's **event** registration controller is named `EventRegistrationsController` and is wired via `resource :registration, controller: "event_registrations"` in `config/routes.rb` to avoid the name collision. If you add Devise modules later (e.g. confirmable), keep the namespacing in mind.
+
+A harmless deprecation warning prints on boot — `resource received a hash argument …` from `config/routes.rb:2` (the `devise_for :users` line). The warning comes from inside Devise itself preparing for Rails 8.2's keyword-only API. Not actionable here; will go away when Devise releases a fix.
+
+## Test fixtures with Devise
+
+User fixtures need a real bcrypt hash for `encrypted_password`, generated via Devise's encryptor:
+
+```yaml
+alice:
+  encrypted_password: <%= Devise::Encryptor.digest(User, "password123") %>
+```
+
+Integration tests get `sign_in user` / `sign_out` helpers via `include Devise::Test::IntegrationHelpers` in `test/test_helper.rb`. `ActiveSupport::TestCase` does **not** include those — sign-in inside a model test will not work and isn't needed.

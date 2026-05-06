@@ -1,0 +1,33 @@
+<% content_for :title, @user.name %>
+
+<h1><%= @user.name %></h1>
+
+<h2>Events created (<%= @created_events.size %>)</h2>
+
+<% if @created_events.any? %>
+  <ul>
+    <% @created_events.each do |event| %>
+      <li>
+        <%= link_to event.title, event %>
+        — <%= event.starts_at.to_fs(:long) if event.starts_at %>
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <p>No events created yet.</p>
+<% end %>
+
+<h2>Events attending (<%= @attended_events.size %>)</h2>
+
+<% if @attended_events.any? %>
+  <ul>
+    <% @attended_events.each do |event| %>
+      <li>
+        <%= link_to event.title, event %>
+        — <%= event.starts_at.to_fs(:long) if event.starts_at %>
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <p>Not registered for any events.</p>
+<% end %>

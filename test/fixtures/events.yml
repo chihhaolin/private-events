@@ -1,0 +1,12 @@
+alice_party:
+  title: Alice's Party
+  description: Cake and games.
+  starts_at: <%= 1.week.from_now %>
+  location: Alice's house
+  creator: alice
+
+alice_picnic:
+  title: Alice's Picnic
+  starts_at: <%= 2.weeks.from_now %>
+  location: The park
+  creator: alice
