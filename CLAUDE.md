@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Rails 8.1.3 on Ruby 3.4.6. Application module: `PrivateEvents`. This is a learning project from The Odin Project — see `README.md` for context, `docs/project.md` for the original spec, and `docs/scope.md` for the agreed Tier 1–3 split. The pedagogical goal is **custom ActiveRecord associations**, so the naming below is deliberately not derivable from convention.
 
-**Tier 1 is built.** Three domain models (`User`, `Event`, `Registration`), Devise auth, full CRUD-lite for events, register/cancel-register flow, user profile. Tier 2 (past/future split, private events + invitations, navbar) and Tier 3 (edit/delete events, toggle public/private) are not yet started.
+**Tier 1 + Tier 2 are built.** Four domain models (`User`, `Event`, `Registration`, `Invitation`), Devise auth, events with public/private flag and creator-managed invitations, register/cancel-register flow gated by visibility, user profile with past/upcoming partitioning across "created / attending / invited" lists, Tailwind-styled UI with navbar. **Tier 3** (edit/delete events, toggle public/private) is not started.
 
 ## Common commands
 
@@ -36,6 +36,8 @@ bin/ci                            # run the whole CI suite locally (see config/c
 
 **Frontend has no bundler.** JavaScript is served via `importmap-rails` (pin map in `config/importmap.rb`, no `package.json`, no npm). Turbo + Stimulus provide the SPA-ish behavior; Propshaft (not Sprockets) is the asset pipeline. `bin/importmap audit` is the JS dep scanner — there is no `npm audit` equivalent because there are no node_modules.
 
+**Tailwind via standalone CLI.** `tailwindcss-rails` ships a Go-based CLI (no Node), entry at `app/assets/tailwind/application.css` (`@import "tailwindcss"`), output at `app/assets/builds/tailwind.css` (gitignored). The layout loads it with `stylesheet_link_tag "tailwind"`. `bin/dev` was overwritten by the installer to use `foreman` + `Procfile.dev` (web: rails server, css: `bin/rails tailwindcss:watch`) — so editing erb classes hot-reloads. For one-shot CI/test runs, use `bin/rails tailwindcss:build`. Tests run fine without rebuilding: erb output is what's asserted, not the compiled CSS.
+
 **Testing.** Minitest with `parallelize(workers: :number_of_processors)` and `fixtures :all` auto-loaded in `test/test_helper.rb`. System tests use Capybara + Selenium. CI splits into five jobs in `.github/workflows/ci.yml`: `scan_ruby` (brakeman), `scan_js` (importmap audit), `lint` (rubocop), `test`, `system-test` — match these locally before pushing.
 
 **Style.** RuboCop inherits from `rubocop-rails-omakase` (`.rubocop.yml`). House overrides go in that file; don't fight omakase defaults without a reason.
@@ -49,13 +51,49 @@ bin/ci                            # run the whole CI suite locally (see config/c
 ```
 User has_many :created_events, class_name: "Event", foreign_key: "creator_id"
 User has_many :registrations
-User has_many :attended_events, through: :registrations, source: :event
+User has_many :attended_events,      through: :registrations,         source: :event
+User has_many :received_invitations, class_name: "Invitation", foreign_key: "invitee_id"
+User has_many :invited_events,       through: :received_invitations,  source: :event
+
 Event belongs_to :creator, class_name: "User"
 Event has_many :registrations
-Event has_many :attendees, through: :registrations, source: :user
+Event has_many :attendees,   through: :registrations, source: :user
+Event has_many :invitations
+Event has_many :invitees,    through: :invitations  # default source works (invitee_id matches)
+
+Invitation belongs_to :event
+Invitation belongs_to :invitee, class_name: "User"
 ```
 
 When a controller creates an event, it must use `current_user.created_events.build(...)` — not `Event.new(...)`. The Odin lesson tests for this idiom; reviewers will flag a regression to `Event.new`.
+
+## Private events and visibility
+
+`events.private` (boolean, default `false`) gates access. Authorization lives on the model as `Event#visible_to?(user)`:
+
+```ruby
+def visible_to?(user)
+  return true unless private?
+  return false unless user
+  creator_id == user.id || invitees.exists?(user.id) || attendees.exists?(user.id)
+end
+```
+
+**Three places call this**, and forgetting any one of them creates a hole:
+1. `EventsController#show` — redirects unauthorized users to root with an alert.
+2. `EventsController#index` — uses an inline `where(private: false OR creator/invitee/attendee)` SQL filter to scope the visible set before partitioning into `Event.upcoming` / `Event.past`. This isn't `visible_to?` because it has to be a SQL predicate, but the logic must stay in sync — if you add a new "X can see private events" rule, update **both** places.
+3. `EventRegistrationsController#create` — also calls `visible_to?` to close the URL-bypass: hiding the "Register" button in the view isn't enough, the POST endpoint must reject too.
+
+The `private` column name is a Ruby keyword. Inside the model, **always** access via the Rails-generated predicate `private?` (never bare `private`, which is the visibility keyword). Outside the model — controllers, views, tests — `event.private?` and `event[:private]` are both fine.
+
+## Controller-naming gotcha (it bites twice)
+
+Two custom controllers exist solely to avoid Devise's `RegistrationsController` namespace and to namespace event-scoped resources cleanly:
+
+- `EventRegistrationsController` — wired via `resource :registration, controller: "event_registrations"` under `events`. Handles "user registers / cancels for event."
+- `EventInvitationsController` — wired via `resources :invitations, controller: "event_invitations"` under `events`. Handles "creator invites / un-invites a user." Creator-only via `before_action :load_event_and_authorize_creator`.
+
+Don't rename either to `RegistrationsController` / `InvitationsController` — the first collides with Devise, the second is just confusing.
 
 ## Devise + Turbo
 

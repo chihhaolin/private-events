@@ -1,33 +1,105 @@
 <% content_for :title, @event.title %>
 
-<h1><%= @event.title %></h1>
+<article class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+  <div class="p-6 sm:p-8 border-b border-slate-100">
+    <div class="flex items-start justify-between gap-3">
+      <h1 class="text-2xl sm:text-3xl font-bold"><%= @event.title %></h1>
+      <% if @event.private? %>
+        <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+          🔒 Private
+        </span>
+      <% end %>
+    </div>
 
-<p>
-  <strong>When:</strong> <%= @event.starts_at.to_fs(:long) if @event.starts_at %><br>
-  <strong>Where:</strong> <%= @event.location %><br>
-  <strong>Created by:</strong> <%= link_to @event.creator.name, @event.creator %>
-</p>
+    <dl class="mt-4 grid gap-2 text-sm text-slate-700 sm:grid-cols-3">
+      <div>
+        <dt class="text-xs uppercase tracking-wider text-slate-500">When</dt>
+        <dd class="mt-1"><%= @event.starts_at&.to_fs(:long) %></dd>
+      </div>
+      <div>
+        <dt class="text-xs uppercase tracking-wider text-slate-500">Where</dt>
+        <dd class="mt-1"><%= @event.location.presence || "—" %></dd>
+      </div>
+      <div>
+        <dt class="text-xs uppercase tracking-wider text-slate-500">Created by</dt>
+        <dd class="mt-1"><%= link_to @event.creator.name, @event.creator, class: "text-indigo-600 hover:underline" %></dd>
+      </div>
+    </dl>
 
-<% if @event.description.present? %>
-  <p><%= simple_format @event.description %></p>
-<% end %>
-
-<% if user_signed_in? %>
-  <% if current_user.attended_events.exists?(@event.id) %>
-    <%= button_to "Cancel registration", event_registration_path(@event), method: :delete %>
-  <% else %>
-    <%= button_to "Register", event_registration_path(@event), method: :post %>
-  <% end %>
-<% end %>
-
-<h2>Attendees (<%= @event.attendees.count %>)</h2>
-
-<% if @event.attendees.any? %>
-  <ul>
-    <% @event.attendees.each do |attendee| %>
-      <li><%= link_to attendee.name, attendee %></li>
+    <% if @event.description.present? %>
+      <div class="mt-5 text-slate-700 leading-relaxed">
+        <%= simple_format @event.description %>
+      </div>
     <% end %>
-  </ul>
-<% else %>
-  <p>No attendees yet.</p>
-<% end %>
+
+    <% if user_signed_in? %>
+      <div class="mt-6">
+        <% if !@event.private? || @event.invitees.exists?(current_user.id) || @event.creator_id == current_user.id %>
+          <% if current_user.attended_events.exists?(@event.id) %>
+            <%= button_to "Cancel registration", event_registration_path(@event), method: :delete,
+                  class: "px-4 py-2 rounded-md bg-slate-200 text-slate-800 text-sm font-medium hover:bg-slate-300" %>
+          <% else %>
+            <%= button_to "Register", event_registration_path(@event), method: :post,
+                  class: "px-4 py-2 rounded-md bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700" %>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="p-6 sm:p-8 bg-slate-50 border-b border-slate-100">
+    <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-3">
+      Attendees (<%= @event.attendees.count %>)
+    </h2>
+    <% if @event.attendees.any? %>
+      <ul class="flex flex-wrap gap-2">
+        <% @event.attendees.each do |attendee| %>
+          <li>
+            <%= link_to attendee.name, attendee,
+                  class: "inline-block px-3 py-1 rounded-full bg-white border border-slate-200 text-sm text-slate-700 hover:border-indigo-300" %>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="text-sm text-slate-500">No attendees yet.</p>
+    <% end %>
+  </div>
+
+  <% if user_signed_in? && @event.creator_id == current_user.id %>
+    <div class="p-6 sm:p-8">
+      <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-3">
+        Manage invitations
+      </h2>
+
+      <% if @event.invitations.any? %>
+        <ul class="divide-y divide-slate-100 mb-4 border border-slate-200 rounded-md bg-white">
+          <% @event.invitations.includes(:invitee).each do |invitation| %>
+            <li class="flex items-center justify-between px-3 py-2">
+              <span class="text-sm text-slate-700">
+                <%= invitation.invitee.name %>
+                <span class="text-slate-400">— <%= invitation.invitee.email %></span>
+              </span>
+              <%= button_to "Remove", event_invitation_path(@event, invitation), method: :delete,
+                    class: "text-xs text-rose-600 hover:text-rose-800" %>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="text-sm text-slate-500 mb-3">No one invited yet.</p>
+      <% end %>
+
+      <%= form_with url: event_invitations_path(@event), local: true, class: "flex gap-2" do |f| %>
+        <%= f.email_field :email,
+              placeholder: "Invitee's email",
+              required: true,
+              class: "flex-1 px-3 py-2 rounded-md border border-slate-300 text-sm focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 focus:outline-none" %>
+        <%= f.submit "Invite",
+              class: "px-4 py-2 rounded-md bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700" %>
+      <% end %>
+    </div>
+  <% end %>
+</article>
+
+<p class="mt-6">
+  <%= link_to "← Back to events", events_path, class: "text-sm text-indigo-600 hover:underline" %>
+</p>

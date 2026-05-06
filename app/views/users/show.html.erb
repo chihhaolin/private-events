@@ -1,33 +1,23 @@
 <% content_for :title, @user.name %>
 
-<h1><%= @user.name %></h1>
+<header class="mb-8">
+  <h1 class="text-3xl font-bold"><%= @user.name %></h1>
+  <p class="text-sm text-slate-500 mt-1"><%= @user.email %></p>
+</header>
 
-<h2>Events created (<%= @created_events.size %>)</h2>
+<%= render "section",
+      title: "Events created",
+      upcoming: @upcoming_created,
+      past: @past_created %>
 
-<% if @created_events.any? %>
-  <ul>
-    <% @created_events.each do |event| %>
-      <li>
-        <%= link_to event.title, event %>
-        — <%= event.starts_at.to_fs(:long) if event.starts_at %>
-      </li>
-    <% end %>
-  </ul>
-<% else %>
-  <p>No events created yet.</p>
-<% end %>
+<%= render "section",
+      title: "Events attending",
+      upcoming: @upcoming_attended,
+      past: @past_attended %>
 
-<h2>Events attending (<%= @attended_events.size %>)</h2>
-
-<% if @attended_events.any? %>
-  <ul>
-    <% @attended_events.each do |event| %>
-      <li>
-        <%= link_to event.title, event %>
-        — <%= event.starts_at.to_fs(:long) if event.starts_at %>
-      </li>
-    <% end %>
-  </ul>
-<% else %>
-  <p>Not registered for any events.</p>
+<% if current_user == @user %>
+  <%= render "section",
+        title: "Invited to",
+        upcoming: @upcoming_invited,
+        past: @past_invited %>
 <% end %>

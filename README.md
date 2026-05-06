@@ -14,6 +14,7 @@ The Odin Project 的「Private Events」練習，個人學習用。
 - Devise 4.9 做認證
 - Hotwire（Turbo + Stimulus）+ Importmap，沒有 Node.js
 - Propshaft asset pipeline
+- Tailwind CSS 4.x（透過 `tailwindcss-rails` 獨立 CLI，依然不需 Node.js）
 - Minitest（parallel）
 
 詳細的架構說明見 [`CLAUDE.md`](./CLAUDE.md)。
@@ -44,7 +45,7 @@ bin/dev
 ## 進度
 
 - [x] **Tier 1** — 註冊／登入、建立活動、報名/取消、events index+show、profile
-- [ ] **Tier 2** — 過去/未來活動切片、navbar、私人活動 + 邀請
+- [x] **Tier 2** — 過去/未來活動切片、navbar、私人活動 + 邀請、Tailwind UI
 - [ ] **Tier 3** — 編輯/刪除活動、切換公開私人
 
 ---

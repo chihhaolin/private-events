@@ -10,3 +10,16 @@ alice_picnic:
   starts_at: <%= 2.weeks.from_now %>
   location: The park
   creator: alice
+
+past_event:
+  title: Old Reunion
+  starts_at: <%= 1.week.ago %>
+  location: Somewhere
+  creator: alice
+
+private_party:
+  title: Alice's Secret
+  starts_at: <%= 3.weeks.from_now %>
+  location: Hidden venue
+  creator: alice
+  private: true

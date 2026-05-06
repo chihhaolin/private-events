@@ -12,4 +12,11 @@ class User < ApplicationRecord
 
   has_many :registrations, dependent: :destroy
   has_many :attended_events, through: :registrations, source: :event
+
+  has_many :received_invitations,
+           class_name: "Invitation",
+           foreign_key: "invitee_id",
+           inverse_of: :invitee,
+           dependent: :destroy
+  has_many :invited_events, through: :received_invitations, source: :event
 end

@@ -1,22 +1,35 @@
 <% content_for :title, "Events" %>
 
-<h1>Events</h1>
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-3xl font-bold">Events</h1>
+  <% if user_signed_in? %>
+    <%= link_to "+ New event", new_event_path,
+          class: "px-4 py-2 rounded-md bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700" %>
+  <% end %>
+</div>
 
-<% if user_signed_in? %>
-  <p><%= link_to "Create new event", new_event_path %></p>
-<% end %>
+<section class="mb-10">
+  <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-3">Upcoming</h2>
+  <% if @upcoming_events.any? %>
+    <ul class="grid gap-3 sm:grid-cols-2">
+      <% @upcoming_events.each do |event| %>
+        <%= render "card", event: event, dim: false %>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="text-slate-500 text-sm">No upcoming events.</p>
+  <% end %>
+</section>
 
-<% if @events.any? %>
-  <ul>
-    <% @events.each do |event| %>
-      <li>
-        <%= link_to event.title, event %>
-        — <%= event.starts_at.to_fs(:long) if event.starts_at %>
-        @ <%= event.location %>
-        (by <%= link_to event.creator.name, event.creator %>)
-      </li>
-    <% end %>
-  </ul>
-<% else %>
-  <p>No events yet.</p>
-<% end %>
+<section>
+  <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-3">Past</h2>
+  <% if @past_events.any? %>
+    <ul class="grid gap-3 sm:grid-cols-2">
+      <% @past_events.each do |event| %>
+        <%= render "card", event: event, dim: true %>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="text-slate-500 text-sm">No past events.</p>
+  <% end %>
+</section>

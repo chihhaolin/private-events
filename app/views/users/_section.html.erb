@@ -1,0 +1,39 @@
+<section class="mb-8 bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+  <h2 class="text-lg font-semibold mb-4"><%= title %></h2>
+
+  <div class="grid sm:grid-cols-2 gap-6">
+    <div>
+      <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Upcoming</h3>
+      <% if upcoming.any? %>
+        <ul class="space-y-1.5">
+          <% upcoming.each do |event| %>
+            <li>
+              <%= link_to event.title, event, class: "text-sm text-indigo-600 hover:underline" %>
+              <% if event.private? %><span class="ml-1 text-xs text-amber-700">🔒</span><% end %>
+              <span class="block text-xs text-slate-500"><%= event.starts_at&.to_fs(:long) %></span>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="text-xs text-slate-500">None.</p>
+      <% end %>
+    </div>
+
+    <div>
+      <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Past</h3>
+      <% if past.any? %>
+        <ul class="space-y-1.5">
+          <% past.each do |event| %>
+            <li>
+              <%= link_to event.title, event, class: "text-sm text-slate-600 hover:underline" %>
+              <% if event.private? %><span class="ml-1 text-xs text-amber-700">🔒</span><% end %>
+              <span class="block text-xs text-slate-400"><%= event.starts_at&.to_fs(:long) %></span>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="text-xs text-slate-500">None.</p>
+      <% end %>
+    </div>
+  </div>
+</section>

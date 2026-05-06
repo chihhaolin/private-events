@@ -11,35 +11,55 @@
 
     <%= yield :head %>
 
-    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
-    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
-
     <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
-    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
-    <nav>
-      <%= link_to "Events", root_path %>
-      |
-      <% if user_signed_in? %>
-        Hi, <%= current_user.name %>
-        (<%= link_to "profile", current_user %>)
-        <%= button_to "Log out", destroy_user_session_path, method: :delete, data: { turbo: false } %>
-      <% else %>
-        <%= link_to "Log in", new_user_session_path %>
-        <%= link_to "Sign up", new_user_registration_path %>
-      <% end %>
-    </nav>
+  <body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+    <header class="bg-white border-b border-slate-200">
+      <nav class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+        <%= link_to "🎟️ Private Events", root_path, class: "text-lg font-semibold text-slate-900 hover:text-indigo-600" %>
 
-    <% if notice %><p class="notice"><%= notice %></p><% end %>
-    <% if alert %><p class="alert"><%= alert %></p><% end %>
+        <div class="flex items-center gap-3 text-sm">
+          <% if user_signed_in? %>
+            <%= link_to "+ New event", new_event_path,
+                  class: "px-3 py-1.5 rounded-md bg-indigo-600 text-white hover:bg-indigo-700" %>
+            <%= link_to current_user.name, current_user,
+                  class: "text-slate-700 hover:text-indigo-600" %>
+            <%= button_to "Log out", destroy_user_session_path, method: :delete,
+                  data: { turbo: false },
+                  class: "text-slate-500 hover:text-slate-900" %>
+          <% else %>
+            <%= link_to "Log in", new_user_session_path,
+                  class: "text-slate-700 hover:text-indigo-600" %>
+            <%= link_to "Sign up", new_user_registration_path,
+                  class: "px-3 py-1.5 rounded-md bg-indigo-600 text-white hover:bg-indigo-700" %>
+          <% end %>
+        </div>
+      </nav>
+    </header>
 
-    <%= yield %>
+    <% if notice %>
+      <div class="max-w-5xl mx-auto w-full px-4 mt-4">
+        <div class="rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-2 text-sm">
+          <%= notice %>
+        </div>
+      </div>
+    <% end %>
+    <% if alert %>
+      <div class="max-w-5xl mx-auto w-full px-4 mt-4">
+        <div class="rounded-md bg-rose-50 border border-rose-200 text-rose-800 px-4 py-2 text-sm">
+          <%= alert %>
+        </div>
+      </div>
+    <% end %>
+
+    <main class="max-w-5xl mx-auto w-full px-4 py-8 flex-1">
+      <%= yield %>
+    </main>
   </body>
 </html>

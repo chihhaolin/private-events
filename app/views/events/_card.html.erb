@@ -1,0 +1,21 @@
+<li class="bg-white rounded-lg border border-slate-200 hover:border-indigo-300 hover:shadow-sm transition <%= 'opacity-70' if dim %>">
+  <%= link_to event, class: "block p-4" do %>
+    <div class="flex items-start justify-between gap-2">
+      <h3 class="font-semibold text-slate-900"><%= event.title %></h3>
+      <% if event.private? %>
+        <span class="shrink-0 inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+          🔒 Private
+        </span>
+      <% end %>
+    </div>
+    <p class="text-sm text-slate-600 mt-1">
+      <%= event.starts_at&.to_fs(:long) %>
+      <% if event.location.present? %>
+        · <%= event.location %>
+      <% end %>
+    </p>
+    <p class="text-xs text-slate-500 mt-2">
+      by <%= event.creator.name %>
+    </p>
+  <% end %>
+</li>
